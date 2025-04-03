@@ -1,0 +1,105 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>de or het?</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    #suggestions {
+        position: absolute;
+        z-index: 10;
+        background-color: white;
+        width: 100%;
+        max-height: 200px;
+        overflow-y: auto;
+        border-radius: 0.375rem;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        scrollbar-width: none; /* Firefox */
+        }
+
+    #suggestions::-webkit-scrollbar {
+        display: none; /* Chrome/Safari */
+        }
+
+  </style>
+</head>
+<body class="bg-white text-black flex items-center justify-center min-h-screen p-4">
+  <div class="text-center w-full max-w-md relative">
+    <h1 id="title" class="text-6xl font-bold italic mb-8 leading-snug">
+      de or het?
+    </h1>
+
+    <div class="relative">
+      <input 
+        type="text" 
+        id="wordInput" 
+        placeholder="type your word here" 
+        class="w-full p-3 border rounded bg-gray-100 italic placeholder-gray-500"
+        disabled
+      />
+      <ul id="suggestions" class="text-left italic mt-1 hidden"></ul>
+    </div>
+  </div>
+
+  <script>
+    let dictionary = {};
+
+    fetch('dictionary.json')
+      .then(res => res.json())
+      .then(data => {
+        dictionary = data;
+        document.getElementById('wordInput').disabled = false;
+        document.getElementById('wordInput').addEventListener('input', searchWord);
+      })
+      .catch(err => {
+        console.error("Failed to load dictionary:", err);
+      });
+
+    const suggestions = document.getElementById('suggestions');
+    const title = document.getElementById('title');
+
+    function searchWord() {
+      const input = document.getElementById('wordInput');
+      const value = input.value.toLowerCase();
+      suggestions.innerHTML = '';
+      title.innerHTML = 'de or het?';
+      suggestions.classList.add('hidden');
+
+      if (!value || value.length < 5) return;
+
+      const matches = Object.keys(dictionary).filter(word => word.startsWith(value));
+      if (matches.length > 0) {
+        suggestions.classList.remove('hidden');
+      }
+
+      matches.forEach(match => {
+        const li = document.createElement('li');
+        li.textContent = match;
+        li.className = 'cursor-pointer hover:underline px-3 py-1';
+        li.onclick = () => {
+          input.value = match;
+          showResult(match);
+          suggestions.innerHTML = '';
+          suggestions.classList.add('hidden');
+        };
+        suggestions.appendChild(li);
+      });
+
+      if (dictionary[value]) {
+        showResult(value);
+      }
+    }
+
+    function showResult(word) {
+      const article = dictionary[word];
+      if (article === 'het') {
+        title.innerHTML = `de or <span class="underline">het</span>?`;
+      } else {
+        title.innerHTML = `<span class="underline">de</span> or het?`;
+      }
+    }
+  </script>
+</body>
+</html>
