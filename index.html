@@ -25,7 +25,7 @@
 
   </style>
 </head>
-<body class="bg-white text-black flex items-center justify-center min-h-screen p-4">
+<body class="bg-white text-black flex items-center justify-center min-h-screen p-4 overflow-hidden max-h-screen">
   <div class="text-center w-full max-w-md relative">
     <h1 id="title" class="text-6xl font-bold italic mb-8 leading-snug">
       de or het?
@@ -36,7 +36,7 @@
         type="text" 
         id="wordInput" 
         placeholder="type your word here" 
-        class="w-full p-3 border rounded bg-gray-100 italic placeholder-gray-500"
+        class="w-full p-3 border rounded bg-gray-100 italic placeholder-gray-500 focus:outline-none focus:ring-0"
         disabled
       />
       <ul id="suggestions" class="text-left italic mt-1 hidden"></ul>
@@ -52,6 +52,20 @@
         dictionary = data;
         document.getElementById('wordInput').disabled = false;
         document.getElementById('wordInput').addEventListener('input', searchWord);
+      document.getElementById('wordInput').addEventListener('keydown', function(e) {
+        if (e.key === 'Enter') {
+          const input = document.getElementById('wordInput');
+          const value = input.value.toLowerCase();
+          if (dictionary[value]) {
+            showResult(value);
+          } else {
+            if (navigator.vibrate) navigator.vibrate(100);
+          title.innerHTML = 'de or het?';
+          }
+          suggestions.innerHTML = '';
+          suggestions.classList.add('hidden');
+        }
+      });
       })
       .catch(err => {
         console.error("Failed to load dictionary:", err);
@@ -64,7 +78,8 @@
       const input = document.getElementById('wordInput');
       const value = input.value.toLowerCase();
       suggestions.innerHTML = '';
-      title.innerHTML = 'de or het?';
+      if (navigator.vibrate) navigator.vibrate(100);
+          title.innerHTML = 'de or het?';
       suggestions.classList.add('hidden');
 
       if (!value || value.length < 5) return;
@@ -83,23 +98,29 @@
           showResult(match);
           suggestions.innerHTML = '';
           suggestions.classList.add('hidden');
+          suggestions.innerHTML = '';
+          suggestions.classList.add('hidden');
         };
         suggestions.appendChild(li);
       });
 
-      if (dictionary[value]) {
-        showResult(value);
-      }
+      // do not show result while typing
     }
 
     function showResult(word) {
       const article = dictionary[word];
-      if (article === 'het') {
+      if (article === 'both') {
+        title.innerHTML = `<span class="underline">de</span> or <span class="underline">het</span>?`;
+      } else if (article === 'het') {
         title.innerHTML = `de or <span class="underline">het</span>?`;
       } else {
         title.innerHTML = `<span class="underline">de</span> or het?`;
       }
     }
   </script>
+
+  <footer class="absolute bottom-2 w-full text-center italic text-sm text-gray-500">
+    A MeryXian Development (1/1)
+  </footer>
 </body>
 </html>
