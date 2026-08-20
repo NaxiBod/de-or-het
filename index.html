@@ -60,6 +60,37 @@
         100% { opacity: 0; transform: translate(-50%, -65%) scale(0.85); }
         }
 
+    #wordOfDay {
+        color: #9ca3af;
+        font-style: italic;
+        margin: -1rem 0 2rem;
+        }
+
+    #wordOfDay .daily-label {
+        font-size: 0.75rem;
+        letter-spacing: 0.08em;
+        margin-bottom: 0.25rem;
+        text-transform: uppercase;
+        }
+
+    #dailyLine {
+        font-size: clamp(0.75rem, 2.5vw, 0.95rem);
+        line-height: 1.4;
+        margin-top: 0.25rem;
+        overflow-x: auto;
+        scrollbar-width: none;
+        white-space: nowrap;
+        }
+
+    #dailyLine::-webkit-scrollbar {
+        display: none;
+        }
+
+    #dailyArticle,
+    #dailyWord {
+        font-weight: 600;
+        }
+
   </style>
 </head>
 <body class="bg-white text-black flex items-center justify-center min-h-screen p-4 overflow-hidden max-h-screen">
@@ -68,6 +99,13 @@
     <h1 id="title" class="text-6xl font-bold italic mb-8 leading-snug">
       de or het?
     </h1>
+
+    <div id="wordOfDay" hidden>
+      <div class="daily-label">word of the day</div>
+      <div id="dailyLine">
+        <span id="dailyArticle"></span> <span id="dailyWord"></span><span aria-hidden="true"> — </span><span id="dailyTranslations"></span>
+      </div>
+    </div>
 
     <div class="relative">
       <input 
@@ -131,6 +169,28 @@
     const suggestions = document.getElementById('suggestions');
     const title = document.getElementById('title');
     const easterEggHeart = document.getElementById('easterEggHeart');
+    const wordOfDay = document.getElementById('wordOfDay');
+    const dailyArticle = document.getElementById('dailyArticle');
+    const dailyWord = document.getElementById('dailyWord');
+    const dailyTranslations = document.getElementById('dailyTranslations');
+
+    fetch('daily-words.json?v=kaikki-20260820')
+      .then(res => {
+        if (!res.ok) throw new Error(`Word-of-the-day request failed: ${res.status}`);
+        return res.json();
+      })
+      .then(words => {
+        if (!words.length) return;
+        const utcDay = Math.floor(Date.now() / 86400000);
+        const entry = words[utcDay % words.length];
+        dailyArticle.textContent = entry.article === 'both' ? 'de/het' : entry.article;
+        dailyWord.textContent = entry.word;
+        dailyTranslations.textContent = entry.translations.join(' · ');
+        wordOfDay.hidden = false;
+      })
+      .catch(err => {
+        console.error('Failed to load word of the day:', err);
+      });
 
     function searchWord() {
       const input = document.getElementById('wordInput');
